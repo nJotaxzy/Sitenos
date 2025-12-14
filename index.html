@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>nós</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(120deg,#0b0b0f,#16161d,#0b0b0f);
+  background-size:400% 400%;
+  animation:fundo 18s ease infinite;
+  color:#eaeaea;
+  overflow-x:hidden;
+}
+
+@keyframes fundo{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+section{
+  padding:72px 6vw;
+  opacity:0;
+  transform:translateY(30px);
+  transition:all 1s ease;
+}
+
+section.visible{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* HERO */
+.hero{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.hero h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(3.5rem,14vw,6rem);
+  font-style:italic;
+  margin-bottom:18px;
+  text-shadow:0 0 18px rgba(242,182,198,.6);
+  animation:brilho 4s ease-in-out infinite;
+}
+
+@keyframes brilho{
+  0%,100%{text-shadow:0 0 18px rgba(242,182,198,.4)}
+  50%{text-shadow:0 0 28px rgba(242,182,198,.9)}
+}
+
+#linha{max-width:520px;font-size:1rem;opacity:.75;line-height:1.5}
+
+/* TEXTO SECRETO */
+.secreto{
+  display:none;
+  margin-top:20px;
+  font-size:.95rem;
+  opacity:.6;
+  font-style:italic;
+}
+
+/* CONTADOR */
+.tempo{text-align:center}
+.tempo span{font-size:.7rem;letter-spacing:2px;opacity:.45;text-transform:uppercase}
+#contador{font-size:clamp(3rem,12vw,5rem);margin:18px 0;color:#f2b6c6}
+
+/* MÚSICA */
+.musica{text-align:center}
+.musica-tag{font-size:.65rem;letter-spacing:3px;opacity:.4;text-transform:uppercase}
+.musica h2{font-family:'Playfair Display',serif;font-style:italic;color:#f2b6c6;margin:16px 0}
+.linha-suave{width:56px;height:1px;margin:24px auto 30px;background:linear-gradient(to right,transparent,#f2b6c6,transparent)}
+.musica-card{max-width:480px;margin:0 auto;padding:16px;border-radius:22px;background:rgba(255,255,255,.06)}
+.musica-card iframe{width:100%;height:152px;border-radius:16px;border:none}
+.tap-msg{margin-top:16px;font-size:.75rem;opacity:.45}
+
+/* GALERIA */
+.galeria{
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  gap:20px;
+}
+
+.galeria img{
+  flex:0 0 85%;
+  scroll-snap-align:center;
+  border-radius:12px;
+  box-shadow:0 30px 50px rgba(0,0,0,.6);
+}
+
+/* MAPA */
+#map{width:100%;height:320px;border-radius:26px;box-shadow:0 25px 60px rgba(0,0,0,.45)}
+#distancia{text-align:center;margin-top:16px;opacity:.6;font-size:.85rem}
+
+footer{text-align:center;padding:64px 20px;font-size:.75rem;opacity:.4}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <h1 id="titulo">nós</h1>
+  <p id="linha"></p>
+  <p class="secreto" id="secreto">mesmo longe, eu nunca soltei sua mão.</p>
+</section>
+
+<section class="tempo">
+  <span>faltam</span>
+  <div id="contador">0</div>
+  <span>dias para ver meu amor</span>
+</section>
+
+<section class="musica">
+  <span class="musica-tag">a canção que nos encontra</span>
+  <h2>nossa música</h2>
+  <div class="linha-suave"></div>
+  <div class="musica-card">
+    <iframe id="spotify" src="https://open.spotify.com/embed/track/66rhnZizvTv2ufYpyHoWoW"></iframe>
+  </div>
+  <p class="tap-msg">toque para ouvir 🎵</p>
+</section>
+
+<section>
+  <div class="galeria">
+    <img src="assets/foto1.jpg">
+    <img src="assets/foto2.jpg">
+    <img src="assets/foto3.jpg">
+  </div>
+</section>
+
+<section>
+  <div id="map"></div>
+  <p id="distancia"></p>
+</section>
+
+<footer>dois estados · um amor</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* animações entrada */
+const sections=document.querySelectorAll('section');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+});
+sections.forEach(s=>io.observe(s));
+
+/* texto poético */
+const frases=[
+"entre dois lugares, existe um sentimento.",
+"a distância nunca foi silêncio.",
+"o tempo sabe onde termina."
+];
+let f=0,l=0;
+const linha=document.getElementById("linha");
+function escrever(){
+ if(l<frases[f].length){
+  linha.textContent+=frases[f][l++];
+  setTimeout(escrever,60);
+ }else{
+  setTimeout(()=>{
+   linha.style.opacity=0;
+   setTimeout(()=>{
+    linha.textContent="";
+    l=0;f=(f+1)%frases.length;
+    linha.style.opacity=1;
+    escrever();
+   },500);
+  },2200);
+ }
+}
+escrever();
+
+/* texto secreto */
+document.getElementById("titulo").addEventListener("click",()=>{
+ const s=document.getElementById("secreto");
+ s.style.display=s.style.display==="block"?"none":"block";
+});
+
+/* contador */
+const contador=document.getElementById("contador");
+function atualizar(){
+ const agora=new Date();
+ let alvo=new Date(agora.getFullYear(),5,23);
+ if(agora>alvo) alvo=new Date(agora.getFullYear()+1,5,23);
+ contador.textContent=Math.floor((alvo-agora)/86400000);
+}
+atualizar();setInterval(atualizar,60000);
+
+/* mapa */
+const palmares=[-8.6844,-35.5890];
+const suzano=[-23.5428,-46.3108];
+const map=L.map("map").setView([-16.5,-41],5);
+L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",{maxZoom:20}).addTo(map);
+L.marker(palmares).addTo(map);
+L.marker(suzano).addTo(map);
+const line=L.polyline([palmares,suzano],{color:"#f2b6c6",dashArray:"8,8"}).addTo(map);
+let o=0;setInterval(()=>{o--;line.setStyle({dashOffset:o});},60);
+const km=(map.distance(palmares,suzano)/1000).toFixed(0);
+document.getElementById("distancia").textContent=`Palmares – PE ↔ Suzano – SP · ${km} km`;
+</script>
+
+</body>
+</html>
